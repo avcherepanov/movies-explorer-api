@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Raik410/movies-explorer-api.git"
+    "url": "git+https://github.com/avcherepanov/movies-explorer-api.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Raik410/movies-explorer-api/issues"
+    "url": "https://github.com/avcherepanov/movies-explorer-api/issues"
   },
-  "homepage": "https://github.com/Raik410/movies-explorer-api#readme",
+  "homepage": "https://github.com/Ravcherepanov/movies-explorer-api#readme",
   "devDependencies": {
     "eslint": "^8.20.0",
     "eslint-config-airbnb-base": "^15.0.0",
@@ -34,7 +34,7 @@
     "express-winston": "^4.2.0",
     "helmet": "^5.1.1",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^6.4.6",
+    "mongoose": "^6.6.1",
     "validator": "^13.7.0",
     "winston": "^3.8.1"
   }
