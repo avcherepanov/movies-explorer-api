@@ -25,15 +25,6 @@ module.exports.createMovies = (req, res, next) => {
     country,
     director,
     duration,
-    year,
-    description,
-    image,
-    trailerLink,
-    thumbnail,
-    movieId,
-    nameRU,
-    nameEN,
-    owner,
   })
     .then((movie) => {
       res.send(movie);
