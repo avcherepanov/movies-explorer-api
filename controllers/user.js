@@ -1,85 +1,88 @@
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const jwtSign = require('../helpers/jwt-sign');
 const User = require('../models/user');
-
-const { NODE_ENV, JWT_SECRET } = process.env;
 
 const BadRequest = require('../utils/errors/BadRequest');
 const BusyOwner = require('../utils/errors/busyOwner');
 const NotFound = require('../utils/errors/NotFound');
 
-const saltRound = 10;
+const {
+  errorIncorrectDataText, errorEmailText, errorUserText, errorDataText,
+} = require('../configs/constants');
 
 module.exports.createUser = (req, res, next) => {
   const { email, password, name } = req.body;
-  bcrypt.hash(password, saltRound)
+
+  bcrypt.hash(password, 10)
     .then((hash) => User.create({
       email, password: hash, name,
-    }))
-    .then((user) => {
-      const userData = {
-        email: user.email,
-        name: user.name,
-        _id: user._id,
-      };
-      res.send(userData);
     })
+      .then((user) => {
+        res.send(user);
+      }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequest('Переданы некорректные данные'));
-      } else if (err.code === 11000) {
-        next(new BusyOwner('Пользователь занят!'));
-      } else {
-        next(err);
+      if (err.name === 'BadRequest') {
+        next(new BadRequest(errorIncorrectDataText));
+        return;
       }
+      if (err.code === 11000) {
+        next(new BusyOwner(errorEmailText));
+        return;
+      }
+
+      next(err);
     });
 };
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
+
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign(
-        { _id: user._id },
-        NODE_ENV === 'production' ? JWT_SECRET : 'some-secret',
-        { expiresIn: '7d' },
-      );
+      const token = jwtSign(user._id);
       res.send({ token });
-    })
+    }
     .catch(next);
 };
 
 module.exports.getUserProfile = (req, res, next) => {
   User.findById(req.user._id)
-    .then((user) => {
-      if (!req.user._id) {
-        next(new NotFound('Пользователь не найден'));
-      } else {
-        res.send(user);
-      }
-    })
-    .catch(next);
+  .then((user) => {
+    if (user === null) {
+      throw new NotFound(errorUserText);
+    }
+    res.send(user);
+  })
+  .catch((err) => {
+    if (err.name === 'CastError') {
+      next(new BadRequest(errorDataText));
+      return;
+    }
+    next(err);
+  });
 };
 
 module.exports.updateProfile = (req, res, next) => {
-  const { email, name } = req.body;
-  const userId = req.user._id;
-
-  User.findByIdAndUpdate(userId, { email, name }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(
+    req.user._id,
+    req.body,
+    { new: true, runValidators: true },
+  )
     .then((user) => {
-      if (!user) {
-        next(new NotFound('Пользователь не найден!'));
-      } else {
-        res.send(user);
+      if (user === null) {
+        throw new NotFound(errorUserText);
       }
+      res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequest('Переданы некорректные данные'));
-      } else if (err.code === 11000) {
-        next(new BusyOwner('Email занят!'));
-      } else {
-        next(err);
+      if (err.name === 'BadRequest' || err.name === 'CastError') {
+        next(new BadRequest(errorDataText));
+        return;
       }
+      if (err.code === 11000) {
+        next(new BusyOwner(errorEmailText));
+        return;
+      }
+      next(err);
     });
 };

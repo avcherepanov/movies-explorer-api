@@ -5,12 +5,14 @@ const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const { errors } = require('celebrate');
 
-const { MONGO_URL, NODE_ENV, PORT } = process.env;
+const { PORT = 3000, MONGO_URL = DATABASE } = process.env;
+
+const cors = require('cors');
+const routes = require('./routes/index');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-const limiter = require('./middlewares/rateLimit');
-const cors = require('./middlewares/cors');
-const router = require('./routes/index');
-const { handleError } = require('./utils/handleError/handleError');
+const { errorsHandler } = require('./middlewares/errorsHandler');
+const { limiter } = require('./middlewares/rateLimiter');
+const { DATABASE } = require('./configs');
 
 const app = express();
 
@@ -19,28 +21,21 @@ app.use(helmet());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(cors);
+mongoose.connect(MONGO_URL);
 
 app.use(requestLogger);
 
+app.use(cors());
+
 app.use(limiter);
 
-router(app);
+app.use(routes);
 
 app.use(errorLogger);
 
 app.use(errors());
 
-app.use(handleError);
+app.use(errorsHandler);
 
-mongoose.connect(NODE_ENV === 'production' ? MONGO_URL : 'mongodb://localhost:27017/bitfilmsdb', {
-  useUnifiedTopology: true,
-  useNewUrlParser: true,
-})
-
-  .then(() => {
-    app.listen(NODE_ENV === 'production' ? PORT : 3000, () => {
-      console.log(`App started on ${PORT} port`);
-    });
-  })
-  .catch((e) => console.log(e));
+app.listen(PORT, () => {
+});
