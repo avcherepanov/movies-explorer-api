@@ -1,7 +1,7 @@
 {
   "name": "movies-explorer-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "Проект Movies бэкенд. Для запуска сервера ввести в терминал команду 'npm run start', для запуска с автообновлением ввести 'npm run dev'",
   "main": "app.js",
   "scripts": {
     "lint": "npx eslint .",
@@ -12,7 +12,7 @@
     "type": "git",
     "url": "git+https://github.com/avcherepanov/movies-explorer-api.git"
   },
-  "author": "",
+  "author": "Artem Cherepanov",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/avcherepanov/movies-explorer-api/issues"
