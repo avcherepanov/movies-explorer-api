@@ -9,6 +9,10 @@ const BadRequest = require('../utils/errors/BadRequest');
 const BusyOwner = require('../utils/errors/busyOwner');
 const NotFound = require('../utils/errors/NotFound');
 
+const {
+  errorIncorrectDataText, errorEmailText, errorUserText
+} = require('../configs/constants');
+
 const saltRound = 10;
 
 module.exports.createUser = (req, res, next) => {
@@ -27,9 +31,9 @@ module.exports.createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequest('Переданы некорректные данные'));
+        next(new BadRequest(errorIncorrectDataText));
       } else if (err.code === 11000) {
-        next(new BusyOwner('Пользователь занят!'));
+        next(new BusyOwner(errorEmailText));
       } else {
         next(err);
       }
@@ -50,11 +54,22 @@ module.exports.login = (req, res, next) => {
     .catch(next);
 };
 
+module.exports.signOut = (req, res) => {
+  res
+    .status(200)
+    .clearCookie('token', {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+    })
+    .send({ message: 'осуществлен выход из системы' });
+};
+
 module.exports.getUserProfile = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
       if (!req.user._id) {
-        next(new NotFound('Пользователь не найден'));
+        next(new NotFound(errorUserText));
       } else {
         res.send(user);
       }
@@ -69,16 +84,16 @@ module.exports.updateProfile = (req, res, next) => {
   User.findByIdAndUpdate(userId, { email, name }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        next(new NotFound('Пользователь не найден!'));
+        next(new NotFound(errorUserText));
       } else {
         res.send(user);
       }
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequest('Переданы некорректные данные'));
+        next(new BadRequest(errorIncorrectDataText));
       } else if (err.code === 11000) {
-        next(new BusyOwner('Email занят!'));
+        next(new BusyOwner(errorEmailText));
       } else {
         next(err);
       }
