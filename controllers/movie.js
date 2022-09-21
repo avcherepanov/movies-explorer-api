@@ -17,7 +17,7 @@ module.exports.getMovies = (req, res, next) => {
       res.status(Statuses.ok).send(movies);
     })
     .catch(() => {
-      next(new ServerError(errorServerText);
+      next(new ServerError(errorServerText));
     });
 };
 
